@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -213,6 +213,14 @@ if not vim.loop.fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
+vim.keymap.set('n', '<leader>l', '<cmd>Lazy<CR>', { desc = 'Open Lazy.nvim' })
+vim.keymap.set('n', '<leader>T', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle nvimtree' })
+vim.keymap.set('n', '<leader>p', '<cmd>Telescope commands<CR>', { desc = 'Command pallete' })
+
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+vim.opt.foldlevel = 99
+
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run
@@ -239,6 +247,51 @@ require('lazy').setup({
 
   -- "gc" to comment visual regions/lines
   { 'numToStr/Comment.nvim', opts = {} },
+  { 'akinsho/toggleterm.nvim', version = '*', opts = { open_mapping = [[<c-\>]], direction = 'float' } },
+  {
+    'kdheepak/lazygit.nvim',
+    cmd = {
+      'LazyGit',
+      'LazyGitConfig',
+      'LazyGitCurrentFile',
+      'LazyGitFilter',
+      'LazyGitFilterCurrentFile',
+    },
+    -- optional for floating window border decoration
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+    },
+    -- setting the keybinding for LazyGit with 'keys' is recommended in
+    -- order to load the plugin when the command is run for the first time
+    keys = {
+      { '<leader>lg', '<cmd>LazyGit<cr>', desc = 'LazyGit' },
+    },
+  },
+  {
+    'stevearc/overseer.nvim',
+    opts = {},
+    config = function()
+      require('overseer').setup()
+    end,
+  },
+  {
+    'ecthelionvi/NeoColumn.nvim',
+    opts = {},
+  },
+  { 'github/copilot.vim' },
+  {
+    'Civitasv/cmake-tools.nvim',
+    opts = { cmake_kits_path = '~/.local/share/CMakeTools' },
+    config = function()
+      require('cmake-tools').setup {}
+    end,
+  },
+  {
+    'nvim-tree/nvim-tree.lua',
+    config = function()
+      require('nvim-tree').setup()
+    end,
+  },
 
   -- Here is a more advanced example where we pass configuration
   -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
@@ -565,7 +618,8 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
+        clangd = {},
+        omnisharp = {},
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -575,7 +629,7 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`tsserver`) will work just fine
-        -- tsserver = {},
+        tsserver = {},
         --
 
         lua_ls = {
@@ -644,20 +698,41 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
+        local disable_filetypes = {}
         return {
-          timeout_ms = 500,
+          timeout_ms = 2500,
           lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
         }
       end,
+      ft_parsers = {
+        --     javascript = "babel",
+        --     javascriptreact = "babel",
+        typescript = 'typescript',
+        typescriptreact = 'typescript',
+        --     vue = "vue",
+        --     css = "css",
+        --     scss = "scss",
+        --     less = "less",
+        --     html = "html",
+        json = 'json',
+        --     jsonc = "json",
+        --     yaml = "yaml",
+        --     markdown = "markdown",
+        --     ["markdown.mdx"] = "mdx",
+        --     graphql = "graphql",
+        --     handlebars = "glimmer",
+      },
       formatters_by_ft = {
         lua = { 'stylua' },
+        cpp = { '/usr/bin/clang-format-18' },
+        c = { '/usr/bin/clang-format-18' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
-        -- javascript = { { "prettierd", "prettier" } },
+        javascript = { 'prettier' },
+        typescript = { 'prettier' },
       },
     },
   },
@@ -729,7 +804,7 @@ require('lazy').setup({
           -- Accept ([y]es) the completion.
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
-          ['<C-y>'] = cmp.mapping.confirm { select = true },
+          ['<CR>'] = cmp.mapping.confirm { select = true },
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
@@ -778,13 +853,13 @@ require('lazy').setup({
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
+    'Mofiqul/dracula.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'dracula'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
@@ -886,6 +961,7 @@ require('lazy').setup({
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
   -- { import = 'custom.plugins' },
+  --
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
