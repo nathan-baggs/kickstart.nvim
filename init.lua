@@ -216,6 +216,7 @@ vim.opt.rtp:prepend(lazypath)
 vim.keymap.set('n', '<leader>l', '<cmd>Lazy<CR>', { desc = 'Open Lazy.nvim' })
 vim.keymap.set('n', '<leader>T', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle nvimtree' })
 vim.keymap.set('n', '<leader>p', '<cmd>Telescope commands<CR>', { desc = 'Command pallete' })
+vim.keymap.set('n', '<C-W><C-V>[', ':exec "vert norm <C-V><C-W>["<CR>', { desc = 'Vertical split tag' })
 
 vim.opt.foldmethod = 'expr'
 vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
@@ -274,10 +275,6 @@ require('lazy').setup({
       require('overseer').setup()
     end,
   },
-  {
-    'ecthelionvi/NeoColumn.nvim',
-    opts = {},
-  },
   { 'github/copilot.vim' },
   {
     'Civitasv/cmake-tools.nvim',
@@ -288,6 +285,7 @@ require('lazy').setup({
   },
   {
     'nvim-tree/nvim-tree.lua',
+    opts = { side = 'right' },
     config = function()
       require('nvim-tree').setup()
     end,
@@ -333,19 +331,20 @@ require('lazy').setup({
       require('which-key').setup()
 
       -- Document existing key chains
-      require('which-key').register {
-        ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-        ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
-        ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-        ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-        ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
-        ['<leader>t'] = { name = '[T]oggle', _ = 'which_key_ignore' },
-        ['<leader>h'] = { name = 'Git [H]unk', _ = 'which_key_ignore' },
+      require('which-key').add {
+        { '', group = '[T]oggle' },
+        { '', group = '[D]ocument' },
+        { '', group = 'Git [H]unk' },
+        { '', group = '[C]ode' },
+        { '', group = '[W]orkspace' },
+        { '', group = '[S]earch' },
+        { '', group = '[R]ename' },
+        { '', desc = '', hidden = true, mode = { 'n', 'n', 'n', 'n', 'n', 'n', 'n' } },
       }
       -- visual mode
-      require('which-key').register({
-        ['<leader>h'] = { 'Git [H]unk' },
-      }, { mode = 'v' })
+      require('which-key').add {
+        { '', desc = '<leader>h', mode = 'v' },
+      }
     end,
   },
 
@@ -619,9 +618,10 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = {},
+        eslint = {},
         omnisharp = {},
         -- gopls = {},
-        -- pyright = {},
+        pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -629,7 +629,7 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`tsserver`) will work just fine
-        tsserver = {},
+        ts_ls = {},
         --
 
         lua_ls = {
@@ -714,7 +714,7 @@ require('lazy').setup({
         --     scss = "scss",
         --     less = "less",
         --     html = "html",
-        json = 'json',
+        --     json = "json",
         --     jsonc = "json",
         --     yaml = "yaml",
         --     markdown = "markdown",
@@ -724,15 +724,17 @@ require('lazy').setup({
       },
       formatters_by_ft = {
         lua = { 'stylua' },
-        cpp = { '/usr/bin/clang-format-18' },
-        c = { '/usr/bin/clang-format-18' },
+        cpp = { 'clang-format-18' },
+        c = { 'clang-format-18' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        python = { 'ruff_format' },
         --
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
         javascript = { 'prettier' },
         typescript = { 'prettier' },
+        javascriptreact = { 'prettier' },
+        typescriptreact = { 'prettier' },
       },
     },
   },
@@ -921,6 +923,7 @@ require('lazy').setup({
         additional_vim_regex_highlighting = { 'ruby' },
       },
       indent = { enable = true, disable = { 'ruby' } },
+      rainbow = { enable = true },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
@@ -938,6 +941,8 @@ require('lazy').setup({
       --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
     end,
   },
+
+  { 'luochen1990/rainbow' },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
